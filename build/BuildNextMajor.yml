@@ -1,0 +1,109 @@
+trigger:
+  branches:
+    include:
+    - releases/*
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: DevPlatform/BuildTemplates.ERP
+      ref: refs/heads/masterBC16
+
+name: 1.0.$(Date:yyyyMMdd)$(Rev:.r) 
+
+variables:
+- name: Username
+  value: user
+- name: Password
+  value: Password1
+- name: masterRepo
+  value: master.ERP
+- name: version
+  value: 'nextmajor'
+- name: bcInsiderUsername
+  value: ''
+- name: bcinsiderPassword
+  value: ''
+
+jobs:
+- job: Build
+  pool: NORRIQERP
+  steps:
+  - checkout: self
+    persistCredentials: true
+
+  - template: GetSubmodules.yml@templates
+    parameters: 
+      accessToken: $(System.AccessToken)
+      masterRepo: $(masterRepo)
+
+  - template: initialize.yml@templates
+    parameters:
+      masterRepo: $(masterRepo)
+  - template: InstallContainerHelper.yml@templates
+    parameters:
+      masterRepo: $(masterRepo)  
+  - template: InstallBCPowerTools.yml@templates
+    parameters:
+      masterRepo: $(masterRepo)
+
+  - template: CreateContainer.yml@templates
+    parameters:
+      username: '$(Username)'
+      password: '$(Password)'
+      masterRepo: $(masterRepo)
+      version: $(version)
+  - template: PublishDepAppPackages.yml@templates
+    parameters:
+      appFolder: 'app'
+      masterRepo: $(masterRepo)
+      accessToken: $(System.AccessToken)
+  - template: CompileApp.yml@templates
+    parameters:
+      appFolder: 'app'
+      username: '$(Username)'
+      password: '$(Password)'
+      masterRepo: $(masterRepo)
+  - template: PublishApp.yml@templates
+    parameters:
+      appFolder: 'app'
+      masterRepo: $(masterRepo)
+#  - template: CompileTestApp.yml@templates
+#    parameters:
+#      appFolder: 'test'
+#      username: '$(Username)'
+#      password: '$(Password)'
+#      masterRepo: $(masterRepo)
+#  - template: PublishTestApp.yml@templates
+#   parameters:
+#      appFolder: 'test'
+ #     masterRepo: $(masterRepo)
+ # - template: ImportTestTool.yml@templates
+ #   parameters:
+ #     username: '$(Username)'
+ #     password: '$(Password)'  
+ #     masterRepo: $(masterRepo)
+  #- template: RunTests.yml@templates
+  #  parameters:
+  #    username: '$(Username)'
+  #    password: '$(Password)'
+  #    TestResultsFile: 'TestResults.xml'
+  #    masterRepo: $(masterRepo)
+ # - task: PublishTestResults@2
+ #   displayName: 'Publish Test Results'
+ #   inputs:
+ #     testResultsFormat: XUnit
+ #     testResultsFiles: 'TestResults.xml' 
+ #     failTaskOnFailedTests: true
+  
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: app'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)\app'
+      ArtifactName: App
+
+  - template: RemoveContainer.yml@templates
+    parameters:
+      masterRepo: $(masterRepo)
+  

@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "app"
+		},
+		{
+			"path": "build"
+		},
+		{
+			"path": "powershell"
+		},
+		{
+			"path": "dependencies"
+		}
+	],
+	"settings": {}
+}

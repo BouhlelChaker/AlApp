@@ -1,0 +1,28 @@
+{
+  "id": "d4e8bf92-4fba-4cc6-9ef8-54c2b29cc548",
+  "name": "ALTraining2021",
+  "publisher": "NORRIQ",
+  "version": "1.0.0.0",
+  "brief": "",
+  "description": "",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "",
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "18.0.0.0",
+  "application": "18.0.0.0",
+  "idRanges": [
+    {
+      "from": 51000,
+      "to": 51999
+    }
+  ],
+  "contextSensitiveHelpUrl": "https://www.norriq.be/",
+  "showMyCode": true,
+  "runtime": "7.2",
+  "target": "Cloud",
+  "features": ["TranslationFile"]
+}

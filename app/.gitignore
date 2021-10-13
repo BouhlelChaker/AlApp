@@ -1,0 +1,18 @@
+.vscode/launch.json
+app/*.app
+.alpackages/*.app
+.vscode/rad.json
+Translations/*.g.xlf
+#launch.json folder
+.vscode/
+#Symbols folder
+.alpackages/
+#Application File
+*.app
+#AL Templates
+.altemplates/
+# AL Cache
+.alcache/
+/.vscode/.alcache/
+#settings file
+settings.json

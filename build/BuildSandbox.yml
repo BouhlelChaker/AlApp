@@ -1,0 +1,222 @@
+trigger:
+  branches:
+    include:
+    - release
+
+name: 1.0.$(Date:yyyyMMdd)$(Rev:.r) 
+
+variables:
+#############
+# To Change #
+#############
+
+# Business Central Version Number (eg. 16.1, 17.2,...)
+- name: BusinessCentral_Version
+  value: '18.3'
+# Business Central Type (OnPrem, Sandbox)  
+- name: BusinessCentral_Type 
+  value: 'Sandbox'
+# Business Central Country (be, w1, de, nl, ...)    
+- name: BusinessCentral_Country
+  value: 'be'
+# DevOps Agent Pool to use
+- name: Pool
+  value: NORRIQ_ERP_DOCKER
+# PipelineName (e.g. DevPlatform, Cheops, CheopsApi,...)
+- name: PipelineName 
+  value: 'ALTraining2021Build'
+
+######################################
+# Used in runtime (no change needed) #
+######################################
+- name: versionNumber
+  value: ''
+- name: revisionNumber
+  value: ''
+- name: LicenseFile
+  value: ''
+- name: PackageFile
+  value: ''
+- name: PersonalTokenPath
+  value: 'C:\Scripts\PAT\settings.txt'
+- name: BuildPath
+  value: $(Build.Repository.LocalPath)
+- name: StagingPath
+  value: $(Build.ArtifactStagingDirectory)
+- name: PackagePath
+  value: 'E:\\Test'
+
+stages:
+  - stage: PreBuild
+    jobs:
+      - job: RunPreBuildChecks
+        displayName: Run Pre-Build checks
+        pool: $(Pool)
+        steps:
+        - task : PowerShell@2
+          displayName: Get Revision Number
+          name: RevisionNumber
+          inputs:
+            targetType: inline
+            script: |
+              [string] $dateTime = (Get-Date -Format 'yyyyMMdd')
+              [string] $indexOfDatetime = $Env:BUILD_BUILDNUMBER.LastIndexOf($dateTime)
+              [string] $versionno = $Env:BUILD_BUILDNUMBER.substring(0,$indexOfDatetime)
+              [string] $DateAndRevision = $Env:BUILD_BUILDNUMBER.substring($indexOfDatetime)
+              [int] $RevisionNumber = $DateAndRevision.substring($DateAndRevision.LastIndexOf('.')+1)
+
+              write-host "Using Build  $DateAndRevision and Revision Number $RevisionNumber" -foregroundcolor Green
+              
+              Write-Host "##vso[task.setvariable variable=versionNumber;isOutput=true]$dateTime"
+              Write-Host "##vso[task.setvariable variable=revisionNumber;isOutput=true]$RevisionNumber"
+
+        - task : PowerShell@2
+          displayName: Get License file
+          name: GetLicenseFile
+          inputs:
+            targetType: inline
+            script: |
+              [string] $licenseFileSearchPath = "$(Build.Repository.LocalPath)\Dependencies\*.flf"
+              $Files = Get-ChildItem -Path $licenseFileSearchPath -Recurse
+              foreach($File in $Files){
+                $licenseFile = $File.FullName
+              }
+              write-host "Using License :$licenseFile" -foregroundcolor Green
+              Write-Host "##vso[task.setvariable variable=licenseFile;isOutput=true]$licenseFile"
+
+              if ($licenseFile -eq "") {
+                write-host "##vso[task.logissue type=error]License file is not available in Dependencies folder"
+              }
+
+        - task : PowerShell@2
+          displayName: Package Dependencies
+          name: PackageDependencies
+          inputs:
+            targetType: inline
+            script: |
+              Import-Module 'C:\Scripts\Saas\Functions\DevOps-Functions.psm1' -Force
+
+              [string] $JsonFileSearchPath = "$(Build.Repository.LocalPath)\Dependencies\*.json"
+              [string] $DependenciesSearchPath = "$(Build.Repository.LocalPath)\Dependencies\"
+              $Files = Get-ChildItem -Path $JsonFileSearchPath -Recurse
+              foreach($File in $Files){
+                $JsonFile = (Get-Content $File.FullName)
+              }
+
+              $File = "C:\Scripts\PAT\settings.txt"
+              $aesKey = Get-AesKey
+
+              $secureObject = Get-Content $File |ConvertTo-SecureString -Key $aesKey 
+
+              $decrypted = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureObject)
+              $decrypted = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($decrypted)
+              $UnsecurePassword = $decrypted
+
+              if (Read-DevOpsDownloadJson -personalToken $UnsecurePassword -JsonFile $JsonFile -path $(PackagePath)){
+                Write-Host ""
+                write-host "Apps have been downloaded..." -ForegroundColor Green
+                Copy-DevOpsDependencies -DependenciesPath $DependenciesSearchPath -Path $(PackagePath) -Customer $(PipelineName) -CreateFolder $true
+                
+                Write-Host ""
+                write-host "Dependencies Apps have been copied..." -ForegroundColor Green
+
+                Write-Host ""
+                $PackageFile = Package-DevOpsDownloadJson -JsonFile $JsonFile -Path $(PackagePath) -customer $(PipelineName) -CreateFolder $false
+
+                Write-Host "##vso[task.setvariable variable=PackageFile;isOutput=true]$PackageFile"
+              }
+
+  - stage: Build
+    jobs:
+      - job: RunAlPipeline
+        displayName: Run AL Pipeline
+        pool: $(Pool)
+        variables:
+        - name: versionNumber
+          value: $[ stageDependencies.PreBuild.RunPreBuildChecks.outputs['RevisionNumber.versionNumber'] ]
+        - name: revisionNumber
+          value: $[ stageDependencies.PreBuild.RunPreBuildChecks.outputs['RevisionNumber.revisionNumber'] ]
+        - name: licenseFile
+          value: $[ stageDependencies.PreBuild.RunPreBuildChecks.outputs['GetLicenseFile.licenseFile'] ]
+        - name: PackageFile
+          value: $[ stageDependencies.PreBuild.RunPreBuildChecks.outputs['PackageDependencies.PackageFile'] ]
+        - name: versionno
+          value: 1
+        steps:
+        - task : PowerShell@2
+          displayName: Execute Al Pipeline
+          name: ExecuteALPipeline
+          inputs:
+            targetType: inline
+            script: | 
+                $ArtifactPath="$(StagingPath)"
+
+                import-module BcContainerHelper -Force
+                $bcContainerHelperConfig.bcartifactsCacheFolder="E:\bcartifacts.cache"
+                $bcContainerHelperConfig.ContainerHelperFolder="E:\containerhelper"
+                $bcContainerHelperConfig | ConvertTo-Json | Set-Content "C:\ProgramData\BcContainerHelper\BcContainerHelper2.config.json"
+
+                $artifactUrl = Get-BCArtifactUrl -type $(BusinessCentral_Type) -select Latest -country $(BusinessCentral_Country) -version $(BusinessCentral_Version)    
+                Run-AlPipeline -pipelineName $(PipelineName) `
+                    -licenseFile $(LicenseFile) `
+                    -baseFolder $(BuildPath) `
+                    -enableUICop `
+                    -enableCodeCop `
+                    -artifact $artifactUrl `
+                    -azureDevOps `
+                    -buildArtifactFolder $ArtifactPath `
+                    -assignPremiumPlan `
+                    -appBuild $(versionNumber) `
+                    -appRevision $(revisionNumber) `
+                    -installApps $(PackageFile) `
+                    -doNotRunTests
+                    
+        - task: PublishBuildArtifacts@1
+          displayName: Publish Artifact to DevOps
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)\Apps'
+            ArtifactName: App
+
+        - task: PowerShell@2
+          displayName: Set the versionno variable value
+          inputs:
+            targetType: 'inline'
+            script: |
+              [string] $dateTime = (Get-Date -Format 'yyyyMMdd')
+              [string] $indexOfDatetime = $Env:BUILD_BUILDNUMBER.LastIndexOf($dateTime)
+              [string] $versionno = $Env:BUILD_BUILDNUMBER.substring(0,$indexOfDatetime)
+              [string] $DateAndRevision = $Env:BUILD_BUILDNUMBER.substring($indexOfDatetime)
+              [int] $RevisionNumber = $DateAndRevision.substring($DateAndRevision.LastIndexOf('.')+1)
+              [string] $RevisionNo =''
+              
+              $DateAndRevision = $DateAndRevision.Replace('.','')
+              
+              if ($RevisionNumber -lt 10) {
+                $RevisionNo = '0'+$RevisionNumber.tostring();
+              } else {
+                $RevisionNo = $RevisionNumber.tostring();
+              }
+
+              $versionno = "$versionno$datetime$RevisionNo"
+
+              Write-Host "Setting the prerelease version number variable to '$versionno'." -ForegroundColor Green
+              Write-Host "##vso[task.setvariable variable=versionno]$versionno"
+
+  - stage: Clean
+    jobs:
+      - job: FlushContainerCache
+        displayName: Flush Container Cache
+        pool: $(Pool)
+        steps:
+          - task: PowerShell@2
+            displayName: "Clean-up : Flush Container Cache"
+            inputs:
+              targetType: 'inline'
+              script: |
+                Import-Module BcContainerHelper
+                $bcContainerHelperConfig.HostHelperFolder="E:\bccontainerhelper"
+                $bcContainerHelperConfig.bcartifactsCacheFolder="E:\bcartifacts.cache"
+                $bcContainerHelperConfig.ContainerHelperFolder="E:\containerhelper"
+                $bcContainerHelperConfig | ConvertTo-Json | Set-Content "C:\ProgramData\BcContainerHelper\BcContainerHelper2.config.json"
+
+                Flush-ContainerHelperCache -cache bcartifacts
