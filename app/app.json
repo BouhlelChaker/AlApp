@@ -21,7 +21,11 @@
     }
   ],
   "contextSensitiveHelpUrl": "https://www.HMI.be/",
-  "showMyCode": true,
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
+  },
   "runtime": "8.0",
   "target": "Cloud",
   "features": ["TranslationFile"]
