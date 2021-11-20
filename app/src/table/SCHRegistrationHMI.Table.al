@@ -78,6 +78,24 @@ table 51000 "SCH Registration HMI"
 
             end;
         }
+        field(30; "Total Amount Excl. VAT"; Decimal)
+        {
+            Caption = 'Total Amount Excluding VAT';
+
+            trigger OnValidate()
+            begin
+
+            end;
+        }
+        field(31; "Total Amount Incl. VAT"; Decimal)
+        {
+            Caption = 'Total Amount Including VAT';
+
+            trigger OnValidate()
+            begin
+
+            end;
+        }
     }
 
     keys

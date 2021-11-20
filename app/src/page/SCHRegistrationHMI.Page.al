@@ -81,6 +81,27 @@ page 51000 "SCH Registration HMI"
                     begin
                     end;
                 }
+                field("Total Amount Excl. VAT"; "Total Amount Excl. VAT")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = '"Total Amount Excl. VAT"';
+                    ShowMandatory = true;
+
+                    trigger OnValidate()
+                    begin
+                    end;
+                }
+                field("Total Amount Incl. VAT"; "Total Amount Incl. VAT")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = '"Total Amount Incl. VAT"';
+                    ShowMandatory = true;
+
+                    trigger OnValidate()
+                    begin
+                    end;
+                }
+
             }
         }
     }
