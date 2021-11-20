@@ -4,7 +4,7 @@ app/*.app
 .vscode/rad.json
 Translations/*.g.xlf
 #launch.json folder
-.vscode/
+#.vscode/
 #Symbols folder
 .alpackages/
 #Application File
