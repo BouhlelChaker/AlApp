@@ -1,0 +1,20 @@
+{
+    "al.defaultLaunchConfigurationName": "Deploy",
+    "CRS.FileNamePattern": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+    "CRS.FileNamePatternExtensions": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+    "CRS.FileNamePatternPageCustomizations": "<ObjectNameShort>.<ObjectTypeShortPascalCase>.al",
+    "CRS.AlSubFolderName":"src",
+
+    "CRS.OnSaveAlFileAction": "Rename",
+    "CRS.ObjectNamePrefix": "SCH ",
+    "CRS.ObjectNameSuffix": " HMI",
+    "CRS.RemoveSuffixFromFilename": false,
+    "CRS.RemovePrefixFromFilename": false,
+    "al.enableCodeAnalysis": true,
+    "al.codeAnalyzers": [
+        "${CodeCop}",
+        "${PerTenantExtensionCop}",
+        "${UICop}"
+    ],
+    "al.ruleSetPath": ".vscode/ruleset.json",
+}
