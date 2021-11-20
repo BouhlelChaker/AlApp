@@ -15,4 +15,4 @@ Translations/*.g.xlf
 .alcache/
 /.vscode/.alcache/
 #settings file
-settings.json
+#settings.json

@@ -1,0 +1,116 @@
+{
+    "name": "NORRIQ AL Project Ruleset",
+    "description": "Ruleset when developing extensions for Dynamics 365 Business Central",
+    "rules": [
+        {
+            "id": "AS0001",
+            "action": "Warning",
+            "justification": "Tables can in rare cases be deleted"
+        },
+        {
+            "id": "AS0002",
+            "action": "Warning",
+            "justification": "Fields can in rare cases be deleted"
+        },
+        {
+            "id": "AS0004",
+            "action": "Warning",
+            "justification": "Fields can in rare cases change type"
+        },
+        {
+            "id": "AS0005",
+            "action": "Warning",
+            "justification": "Fields can in rare cases change name"
+        },
+        {
+            "id": "AS0006",
+            "action": "Warning",
+            "justification": "Tables can in rare cases change name"
+        },
+        {
+            "id": "AS0007",
+            "action": "Warning",
+            "justification": "Properties can change values"
+        },
+        {
+            "id": "AS0008",
+            "action": "Warning",
+            "justification": "Keys can in rare cases change name"
+        },
+        {
+            "id": "AS0009",
+            "action": "Warning",
+            "justification": "Keys can in rare cases change name"
+        },
+        {
+            "id": "AS0010",
+            "action": "Warning",
+            "justification": "Keys can in rare cases be deleted"
+        },
+        {
+            "id": "PTE0003",
+            "action": "Warning",
+            "justification": "In customer project one might subscribe to OnCompanyOpen"
+        },
+        {
+            "id": "PTE0005",
+            "action": "Warning",
+            "justification": "Target can be internal for customer projects"
+        },
+        {
+            "id": "PTE0006",
+            "action": "Warning",
+            "justification": "Encryption might be needed in customer projects"
+        },
+        {
+            "id": "AW0007",
+            "action": "Warning",
+            "justification": "Flowfilters can be used in windows client"
+        },
+        {
+            "id": "AA0218",
+            "action": "Hidden",
+            "justification": "will not add tooltip for now"
+        },
+        {
+            "id": "AA0470",
+            "action": "Hidden",
+            "justification": "will not add comment for labels"
+        },
+        {
+            "id": "AA0214",
+            "action": "Hidden",
+            "justification": "No need for record.modify"
+        },
+        {
+            "id": "AW0006",
+            "action": "Hidden",
+            "justification": "No need for UsageCategory in all pages"
+        },
+        {
+            "id": "AW0011",
+            "action": "Hidden",
+            "justification": "Promoted actions can remain in action group"
+        },
+        {
+            "id": "AA0215",
+            "action": "Hidden",
+            "justification": "Exclude suffix from file name"
+        },
+        {
+            "id": "AL0604",
+            "action": "Hidden",
+            "justification": "Ignore with future removal"
+        },        
+        {
+            "id": "AL0606",
+            "action": "Hidden",
+            "justification": "Ignore with future removal"
+        },        
+        {
+            "id": "AA0072",
+            "action": "Hidden",
+            "justification": "Ignore objects suffix"
+        }
+    ]
+}
